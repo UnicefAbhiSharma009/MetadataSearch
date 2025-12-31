@@ -49,6 +49,7 @@ Salesforce Metadata Search LWC streamlines the process of searching and navigati
 
 ## Project Structure
 
+
 ```
 force-app/
 └── main/
@@ -56,12 +57,20 @@ force-app/
 		├── classes/
 		│   ├── META_MetadataSearchController.cls
 		│   └── META_MetadataSearchControllerTest.cls
-		└── lwc/
-			└── metaMetadataSearch/
-				├── metaMetadataSearch.html
-				├── metaMetadataSearch.js
-				├── metaMetadataSearch.js-meta.xml
-				└── metaMetadataSearch.css
+		├── lwc/
+		│   └── metaMetadataSearch/
+		│       ├── metaMetadataSearch.html
+		│       ├── metaMetadataSearch.js
+		│       ├── metaMetadataSearch.js-meta.xml
+		│       └── metaMetadataSearch.css
+		├── permissionsets/
+		│   └── Feature_Metadata_Search_Permissions.permissionset-meta.xml
+		├── quickActions/
+		│   └── Search_Metadata.quickAction-meta.xml
+		└── aura/
+			└── metaMetadataSearchAura/
+				├── metaMetadataSearchAura.cmp
+				└── metaMetadataSearchAura.cmp-meta.xml
 ```
 
 ---
@@ -96,40 +105,6 @@ Organization: CloudWithAbhi
 
 ## Acknowledgments
 
-- Salesforce Developer Community
-- All contributors and testers
-	└── default/
-		├── classes/
-		│   ├── META_MetadataSearchController.cls
-		│   └── META_MetadataSearchControllerTest.cls
-		└── lwc/
-			└── metaMetadataSearch/
-				├── metaMetadataSearch.html
-				├── metaMetadataSearch.js
-				├── metaMetadataSearch.js-meta.xml
-				└── metaMetadataSearch.css
-
-🧪 Testing
-- Apex test coverage is provided via META_MetadataSearchControllerTest.cls.
-- LWC can be tested in any Lightning App Page or Utility Bar context.
-
-🤝 Contributing
-Contributions are welcome! Please:
-- Fork the repository
-- Create a feature branch
-- Submit a pull request with a clear description
-
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-👤 Author
-Abhishek Sharma
-
-GitHub: @cloudwithabhi
-Email: contact@cloudwithabhi.com
-Organization: CloudWithAbhi
-
-🙏 Acknowledgments
-- Salesforce Developer Community
-- All contributors and testers
-- Made with ❤️ by Abhishek Sharma | Powered by Salesforce
+- Thanks to the Salesforce Developer Community for their resources and support.
+- Appreciation to all contributors and testers who helped improve this project.
+- Made with ❤️ by Abhishek Sharma | Powered by Salesforce.
