@@ -97,7 +97,6 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ## Author
 
 **Abhishek Sharma**  
-GitHub: [@cloudwithabhi](https://github.com/cloudwithabhi)  
 Email: contact@cloudwithabhi.com  
 Organization: CloudWithAbhi
 
