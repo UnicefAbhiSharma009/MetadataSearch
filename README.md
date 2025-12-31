@@ -1,4 +1,5 @@
-# Salesforce Metadata Search LWC
+
+# Salesforce Metadata Search
 
 A powerful Lightning Web Component for unified, cross-metadata search in Salesforce. Instantly find, filter, and access Apex, Permission Sets, Reports, Dashboards, Email Templates, Objects, Fields, and more. All from a single interface.
 
@@ -9,7 +10,7 @@ A powerful Lightning Web Component for unified, cross-metadata search in Salesfo
 
 ## Overview
 
-Salesforce Metadata Search LWC streamlines the process of searching and navigating Salesforce metadata. With a modern UI, it enables admins and developers to quickly locate and access all major metadata types from one place.
+Salesforce Metadata Search streamlines the process of searching and navigating Salesforce metadata. With a modern UI, it enables admins and developers to quickly locate and access all major metadata types from one place.
 
 ---
 
@@ -75,10 +76,11 @@ force-app/
 
 ---
 
+
 ## Testing
 
 - Apex test coverage is provided via `META_MetadataSearchControllerTest.cls`.
-- LWC can be tested in any Lightning App Page or Utility Bar context.
+- The component can be tested in any Lightning App Page or Utility Bar context.
 
 ---
 
