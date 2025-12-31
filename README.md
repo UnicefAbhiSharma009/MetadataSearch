@@ -1,6 +1,6 @@
 # Salesforce Metadata Search LWC
 
-A powerful Lightning Web Component for unified, cross-metadata search in Salesforce. Instantly find, filter, and access Apex, Permission Sets, Reports, Dashboards, Email Templates, Objects, Fields, and more—all from a single interface.
+A powerful Lightning Web Component for unified, cross-metadata search in Salesforce. Instantly find, filter, and access Apex, Permission Sets, Reports, Dashboards, Email Templates, Objects, Fields, and more. All from a single interface.
 
 ![Salesforce API](https://img.shields.io/badge/Salesforce%20API-v64.0-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
