@@ -42,7 +42,7 @@ public class META_MetadataSearchControllerTest {
         List<String> types = new List<String>{
             'ApexClass', 'ApexTrigger', 'ApexPage', 'ApexComponent', 'Profile',
             'PermissionSet', 'PermissionSetGroup', 'StaticResource', 'Report',
-            'Dashboard', 'EmailTemplate', 'TabDefinition', 'CustomObject', 'CustomField', 'RecordType'
+            'Dashboard', 'EmailTemplate', 'Object', 'Field', 'CustomMetadataType'
         };
         Test.startTest();
         for (String t : types) {

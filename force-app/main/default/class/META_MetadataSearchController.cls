@@ -139,6 +139,8 @@ public without sharing class META_MetadataSearchController {
             return searchCustomObject(likeTerm, globalLimit);
         } else if (type == 'Field') {
             return searchCustomField(likeTerm, globalLimit);
+        } else if (type == 'CustomMetadataType') {
+            return searchCustomMetadataType(likeTerm, globalLimit);
         }
         return new List<MetadataResult>();
     }
@@ -289,7 +291,7 @@ public without sharing class META_MetadataSearchController {
     private static List<MetadataResult> searchPermissionSetGroup(String likeTerm, Integer globalLimit) {
         List<MetadataResult> results = new List<MetadataResult>();
         if (Schema.sObjectType.PermissionSetGroup.isAccessible()) {
-            for (PermissionSetGroup psg : [SELECT Id, DeveloperName, MasterLabel FROM PermissionSetGroup WHERE DeveloperName LIKE :likeTerm ORDER BY MasterLabel, DeveloperName LIMIT :globalLimit]) {
+            for (PermissionSetGroup psg : [SELECT Id, DeveloperName, MasterLabel FROM PermissionSetGroup WHERE MasterLabel LIKE :likeTerm ORDER BY MasterLabel, DeveloperName LIMIT :globalLimit]) {
                 results.add(new MetadataResult(
                     psg.Id,
                     psg.DeveloperName,
@@ -408,15 +410,46 @@ public without sharing class META_MetadataSearchController {
      */
     private static List<MetadataResult> searchCustomObject(String likeTerm, Integer globalLimit) {
         List<MetadataResult> results = new List<MetadataResult>();
-        List<EntityDefinition> entityObjects = [SELECT QualifiedApiName, NamespacePrefix FROM EntityDefinition WHERE IsCustomizable = true AND QualifiedApiName LIKE :likeTerm ORDER BY QualifiedApiName LIMIT :globalLimit];
-        for (EntityDefinition obj : entityObjects) {
-            results.add(new MetadataResult(
-                null,
-                obj.QualifiedApiName,
-                'Object',
-                obj.NamespacePrefix,
-                null, null, null, null, null, null, null
-            ));
+        if (Schema.sObjectType.EntityDefinition.isAccessible()) {
+            // Query by QualifiedApiName
+            List<EntityDefinition> byApiName = [
+                SELECT QualifiedApiName, NamespacePrefix
+                FROM EntityDefinition
+                WHERE IsCustomizable = true AND QualifiedApiName LIKE :likeTerm
+                AND (NOT QualifiedApiName LIKE '%__mdt')
+                ORDER BY QualifiedApiName
+                LIMIT :globalLimit
+            ];
+            // Query by Label
+            List<EntityDefinition> byLabel = [
+                SELECT QualifiedApiName, NamespacePrefix
+                FROM EntityDefinition
+                WHERE IsCustomizable = true AND Label LIKE :likeTerm
+                AND (NOT QualifiedApiName LIKE '%__mdt')
+                ORDER BY QualifiedApiName
+                LIMIT :globalLimit
+            ];
+            // Merge results, avoiding duplicates
+            Map<String, EntityDefinition> merged = new Map<String, EntityDefinition>();
+            for (EntityDefinition ed : byApiName) {
+                merged.put(ed.QualifiedApiName, ed);
+            }
+            for (EntityDefinition ed : byLabel) {
+                merged.put(ed.QualifiedApiName, ed);
+            }
+
+            for (EntityDefinition obj : merged.values()) {
+                results.add(new MetadataResult(
+                    null,
+                    obj.QualifiedApiName,
+                    'Object',
+                    obj.NamespacePrefix,
+                    null, null, null, null, null, null, null
+                ));
+                if (results.size() >= globalLimit) {
+                    break;
+                }
+            }
         }
         return results;
     }
@@ -430,31 +463,110 @@ public without sharing class META_MetadataSearchController {
      */
     private static List<MetadataResult> searchCustomField(String likeTerm, Integer globalLimit) {
         List<MetadataResult> results = new List<MetadataResult>();
-        List<FieldDefinition> allFields = [
-            SELECT QualifiedApiName, DurableId, NamespacePrefix, EntityDefinitionId, EntityDefinition.QualifiedApiName
-            FROM FieldDefinition
-            WHERE EntityDefinition.IsCustomizable = true
-            AND QualifiedApiName LIKE :likeTerm
-            ORDER BY QualifiedApiName
-            LIMIT :globalLimit
-        ];
-        for (FieldDefinition fd : allFields) {
-            String fieldLabel = fd.EntityDefinition.QualifiedApiName + '.' + fd.QualifiedApiName;
-            String fieldId = fd.DurableId != null ? fd.DurableId.trim() : null;
-            if (fieldId != null && fieldId.contains('.')) {
-                List<String> parts = fieldId.split('\\.');
-                fieldId = parts[parts.size() - 1].trim();
+        if (Schema.sObjectType.FieldDefinition.isAccessible()) {
+            // Query by QualifiedApiName
+            List<FieldDefinition> byApiName = [
+                SELECT QualifiedApiName, DurableId, NamespacePrefix, EntityDefinitionId, EntityDefinition.QualifiedApiName
+                FROM FieldDefinition
+                WHERE EntityDefinition.IsCustomizable = true
+                AND QualifiedApiName LIKE :likeTerm
+                ORDER BY QualifiedApiName
+                LIMIT :globalLimit
+            ];
+            // Query by Label
+            List<FieldDefinition> byLabel = [
+                SELECT QualifiedApiName, DurableId, NamespacePrefix, EntityDefinitionId, EntityDefinition.QualifiedApiName
+                FROM FieldDefinition
+                WHERE EntityDefinition.IsCustomizable = true
+                AND Label LIKE :likeTerm
+                ORDER BY QualifiedApiName
+                LIMIT :globalLimit
+            ];
+            // Merge results, avoiding duplicates
+            Map<String, FieldDefinition> merged = new Map<String, FieldDefinition>();
+            for (FieldDefinition fd : byApiName) {
+                merged.put(fd.EntityDefinition.QualifiedApiName + '.' + fd.QualifiedApiName, fd);
             }
-            results.add(new MetadataResult(
-                fieldId,
-                fieldLabel,
-                'Field',
-                fd.NamespacePrefix,
-                null, null, null,
-                fd.EntityDefinition.QualifiedApiName,
-                fd.QualifiedApiName,
-                null, null
-            ));
+            for (FieldDefinition fd : byLabel) {
+                merged.put(fd.EntityDefinition.QualifiedApiName + '.' + fd.QualifiedApiName, fd);
+            }
+
+            for (FieldDefinition fd : merged.values()) {
+                String fieldLabel = fd.EntityDefinition.QualifiedApiName + '.' + fd.QualifiedApiName;
+                String fieldId = fd.DurableId != null ? fd.DurableId.trim() : null;
+                if (fieldId != null && fieldId.contains('.')) {
+                    List<String> parts = fieldId.split('\\.');
+                    fieldId = parts[parts.size() - 1].trim();
+                }
+                results.add(new MetadataResult(
+                    fieldId,
+                    fieldLabel,
+                    'Field',
+                    fd.NamespacePrefix,
+                    null, null, null,
+                    fd.EntityDefinition.QualifiedApiName,
+                    fd.QualifiedApiName,
+                    null, null
+                ));
+                if (results.size() >= globalLimit) {
+                    break;
+                }
+            }
+        }
+        return results;
+    }
+
+    /**
+     * @description Searches Custom Metadata Type definitions by API name fragment using EntityDefinition.
+     *              Only returns Custom Metadata Types (objects ending with __mdt).
+     * @param likeTerm String - SOQL LIKE term for API name search
+     * @param globalLimit Integer - Maximum number of results
+     * @return List<MetadataResult> - List of Custom Metadata Type metadata results
+     */
+    private static List<MetadataResult> searchCustomMetadataType(String likeTerm, Integer globalLimit) {
+        List<MetadataResult> results = new List<MetadataResult>();
+        if (Schema.sObjectType.EntityDefinition.isAccessible()) {
+            // Query by QualifiedApiName
+            List<EntityDefinition> byApiName = [
+                SELECT QualifiedApiName, NamespacePrefix, MasterLabel, DurableId
+                FROM EntityDefinition
+                WHERE QualifiedApiName LIKE '%__mdt'
+                AND QualifiedApiName LIKE :likeTerm
+                ORDER BY QualifiedApiName
+                LIMIT :globalLimit
+            ];
+            // Query by Label
+            List<EntityDefinition> byLabel = [
+                SELECT QualifiedApiName, NamespacePrefix, MasterLabel, DurableId
+                FROM EntityDefinition
+                WHERE QualifiedApiName LIKE '%__mdt'
+                AND MasterLabel LIKE :likeTerm
+                ORDER BY QualifiedApiName
+                LIMIT :globalLimit
+            ];
+            // Merge results, avoiding duplicates
+            Map<String, EntityDefinition> merged = new Map<String, EntityDefinition>();
+            for (EntityDefinition ed : byApiName) {
+                merged.put(ed.QualifiedApiName, ed);
+            }
+            for (EntityDefinition ed : byLabel) {
+                merged.put(ed.QualifiedApiName, ed);
+            }
+
+            for (EntityDefinition obj : merged.values()) {
+                results.add(new MetadataResult(
+                    obj.DurableId,
+                    obj.QualifiedApiName,
+                    'CustomMetadataType',
+                    obj.NamespacePrefix,
+                    null,
+                    obj.MasterLabel,
+                    null, null, null, null, null
+                ));
+                if (results.size() >= globalLimit) {
+                    break;
+                }
+            }
         }
         return results;
     }
@@ -481,6 +593,7 @@ public without sharing class META_MetadataSearchController {
         addIfUnderLimit(allResults, searchEmailTemplate(likeTerm, globalLimit), globalLimit);
         addIfUnderLimit(allResults, searchCustomObject(likeTerm, globalLimit), globalLimit);
         addIfUnderLimit(allResults, searchCustomField(likeTerm, globalLimit), globalLimit);
+        addIfUnderLimit(allResults, searchCustomMetadataType(likeTerm, globalLimit), globalLimit);
         return allResults;
     }
 }

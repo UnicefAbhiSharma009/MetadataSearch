@@ -14,7 +14,8 @@ const TYPE_OPTIONS = [
     { label: 'Dashboard', value: 'Dashboard' },
     { label: 'Email Template', value: 'EmailTemplate' },
     { label: 'Object', value: 'Object' },
-    { label: 'Field', value: 'Field' }
+    { label: 'Field', value: 'Field' },
+    { label: 'Custom Metadata Type', value: 'CustomMetadataType' }
 ];
 
 export default class MetaMetadataSearch extends LightningElement {
@@ -108,6 +109,8 @@ export default class MetaMetadataSearch extends LightningElement {
             return `/lightning/setup/ObjectManager/${item.name}/Details/view`;
         } else if (item.type === 'Field') {
             return `/lightning/setup/ObjectManager/${item.objectName}/FieldsAndRelationships/${item.id}/view`;
+        } else if (item.type === 'CustomMetadataType') {
+            return `/lightning/setup/CustomMetadata/page?address=%2F${item.id}%3Fsetupid%3DCustomMetadata`;
         }
         return '#';
     }
